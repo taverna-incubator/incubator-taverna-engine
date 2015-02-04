@@ -1,6 +1,7 @@
 package net.sf.taverna.t2.security.credentialmanager.impl;
 
 import static net.sf.taverna.t2.security.credentialmanager.CredentialManager.USER_SET_MASTER_PASSWORD_INDICATOR_FILE_NAME;
+import static net.sf.taverna.t2.security.credentialmanager.impl.DistinguishedNameParserImpl.getTheCredentialManagerDefaultDirectory;
 
 import java.io.File;
 
@@ -36,7 +37,7 @@ public class DefaultMasterPasswordProvider implements MasterPasswordProvider {
 
 	@Override
 	public String getMasterPassword(boolean firstTime) {
-		File cmDir = DistinguishedNameParserImpl.getTheCredentialManagerDefaultDirectory(appConfig);
+		File cmDir = getTheCredentialManagerDefaultDirectory(appConfig);
 		File flagFile = new File(cmDir,
 				USER_SET_MASTER_PASSWORD_INDICATOR_FILE_NAME);
 		if (flagFile.exists())

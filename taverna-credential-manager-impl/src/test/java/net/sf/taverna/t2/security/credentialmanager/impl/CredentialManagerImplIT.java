@@ -22,7 +22,6 @@ package net.sf.taverna.t2.security.credentialmanager.impl;
 
 import static org.junit.Assert.*;
 
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -60,23 +59,23 @@ import org.junit.Test;
 /**
  * Tests here require Java strong/unlimited cryptography policy to be installed
  * so they are part of integration tests.
- * 
+ * <p>
  * Java strong/unlimited cryptography policy is required to use the Credential Manager and
  * the full security capabilities in Taverna. Java by default comes with the weak policy 
  * that disables the use of certain cryto algorithms and bigger key sizes. Although 
  * it is claimed that as of Java 6 the default policy is strong, we have seen otherwise, 
  * so make sure you install it.
- * 
+ * <p>
  * For Java 6, strong/unlimited cryptography policy can be downloaded 
  * (together with the installation instructions) from:
  * http://www.oracle.com/technetwork/java/javase/downloads/jce-6-download-429243.html
- * 
+ * <p>
  * These tests use an existing keystore (in resources/security/t2keystore.ubr) and 
  * truststore (in resources/security/t2truststore.ubr) that are not empty.
  * 
  * @author Alex Nenadic
- *
  */
+@SuppressWarnings("unused")
 public class CredentialManagerImplIT {
 
 	private static CredentialManagerImpl credentialManager;
