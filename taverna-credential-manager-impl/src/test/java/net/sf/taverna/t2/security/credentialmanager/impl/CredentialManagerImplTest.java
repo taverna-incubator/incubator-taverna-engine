@@ -67,26 +67,28 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * Tests here should not require Java strong/unlimited cryptography policy to be installed, 
- * although if something goes wrong that is the first thing to be checked for.
+ * Tests here should not require Java strong/unlimited cryptography policy to be
+ * installed, although if something goes wrong that is the first thing to be
+ * checked for.
+ * <p>
+ * Java by default comes with the weak policy that disables the use of certain
+ * cryto algorithms and bigger key sizes. Although it is claimed that as of Java
+ * 6 the default policy is strong, we have seen otherwise, so make sure you
+ * install it.
+ * <p>
+ * For Java 6, strong/unlimited cryptography policy can be downloaded (together
+ * with the installation instructions) from:
+ * http://www.oracle.com/technetwork/java
+ * /javase/downloads/jce-6-download-429243.html
+ * <p>
+ * An empty Keystore/Truststore is created before each test so we always start
+ * afresh (see the {@link #setUp()} method).
  * 
- * Java by default comes with the weak policy 
- * that disables the use of certain cryto algorithms and bigger key sizes. Although 
- * it is claimed that as of Java 6 the default policy is strong, we have seen otherwise, 
- * so make sure you install it.
- * 
- * For Java 6, strong/unlimited cryptography policy can be downloaded 
- * (together with the installation instructions) from:
- * http://www.oracle.com/technetwork/java/javase/downloads/jce-6-download-429243.html
- * 
- * An empty Keystore/Truststore is created before each test so we always start afresh 
- * (see the setUp() method).
- * s
  * @author Alex Nenadic
  *
  */
 public class CredentialManagerImplTest {
-	
+
 	private CredentialManagerImpl credentialManager;
 	private String masterPassword = "uber";
 	private DummyMasterPasswordProvider masterPasswordProvider;
@@ -146,21 +148,19 @@ public class CredentialManagerImplTest {
 		File trustedCertFile = new File(trustedCertficateFileURL.getPath());		
 		inStream = new FileInputStream(trustedCertFile);
 		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-		trustedCertficate = (X509Certificate) certFactory.generateCertificate(inStream);
-		try{
+		trustedCertficate = (X509Certificate) certFactory
+				.generateCertificate(inStream);
+		try {
 			inStream.close();
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			// Ignore
 		}
 		
 		keystoreChangedObserver = new Observer<KeystoreChangedEvent>() {
-			
 			@Override
 			public void notify(Observable<KeystoreChangedEvent> sender,
 					KeystoreChangedEvent message) throws Exception {
 				// TODO Auto-generated method stub
-				
 			}
 		};
 	}
@@ -170,12 +170,7 @@ public class CredentialManagerImplTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		try {
-			credentialManager = new CredentialManagerImpl();
-		} catch (CMException e) {
-			System.out.println(e.getStackTrace());
-		}
+		credentialManager = new CredentialManagerImpl();
 		Random randomGenerator = new Random();
 		String credentialManagerDirectoryPath = System
 				.getProperty("java.io.tmpdir")
@@ -185,12 +180,8 @@ public class CredentialManagerImplTest {
 		System.out.println("Credential Manager's directory path: "
 				+ credentialManagerDirectoryPath);
 		credentialManagerDirectory = new File(credentialManagerDirectoryPath);
-		try {
-			credentialManager
-					.setConfigurationDirectoryPath(credentialManagerDirectory);
-		} catch (CMException e) {
-			System.out.println(e.getStackTrace());
-		}
+		credentialManager
+				.setConfigurationDirectoryPath(credentialManagerDirectory);
 
 		// Create the dummy master password provider
 		masterPasswordProvider = new DummyMasterPasswordProvider();
@@ -210,18 +201,14 @@ public class CredentialManagerImplTest {
 
 	@After
 	// Clean up the credentialManagerDirectory we created for testing
-	public void cleanUp(){
+	public void cleanUp() throws IOException {
 //		assertTrue(credentialManagerDirectory.exists());
 //		assertFalse(credentialManagerDirectory.listFiles().length == 0); // something was created there
 	
-		if (credentialManagerDirectory.exists()){
-			try {
-				FileUtils.deleteDirectory(credentialManagerDirectory);				
-				System.out.println("Deleting Credential Manager's directory: "
-						+ credentialManagerDirectory.getAbsolutePath());
-			} catch (IOException e) {
-				System.out.println(e.getStackTrace());
-			}	
+		if (credentialManagerDirectory.exists()) {
+			FileUtils.deleteDirectory(credentialManagerDirectory);
+			System.out.println("Deleting Credential Manager's directory: "
+					+ credentialManagerDirectory.getAbsolutePath());
 		}
 	}
 	
@@ -698,22 +685,14 @@ public class CredentialManagerImplTest {
 		
 		// Load the Credential Manager back from the saved file to see of entries will be picked up properly
 		CredentialManagerImpl credentialManagerNew = null;
-		try {
-			credentialManagerNew = new CredentialManagerImpl();
-		} catch (CMException e) {
-			System.out.println(e.getStackTrace());
-		}
-		try {
-			credentialManagerNew
+		credentialManagerNew = new CredentialManagerImpl();
+		credentialManagerNew
 					.setConfigurationDirectoryPath(credentialManagerDirectory);
-		} catch (CMException e) {
-			System.out.println(e.getStackTrace());
-		}
 
 		// Create the dummy master password provider
 		masterPasswordProvider = new DummyMasterPasswordProvider();
 		masterPasswordProvider.setMasterPassword("hlab");
-		List<MasterPasswordProvider> masterPasswordProviders = new ArrayList<MasterPasswordProvider>();
+		List<MasterPasswordProvider> masterPasswordProviders = new ArrayList<>();
 		masterPasswordProviders.add(masterPasswordProvider);
 		credentialManager.setMasterPasswordProviders(masterPasswordProviders);
 		

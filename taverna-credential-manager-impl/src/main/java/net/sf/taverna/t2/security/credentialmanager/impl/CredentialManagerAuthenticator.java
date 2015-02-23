@@ -22,7 +22,6 @@ import org.apache.log4j.Logger;
  * Special case included for proxy authentication.
  * 
  * @author Stian Soiland-Reyes
- * 
  */
 public class CredentialManagerAuthenticator extends Authenticator {
 	private Logger logger;
@@ -82,19 +81,19 @@ public class CredentialManagerAuthenticator extends Authenticator {
 		if (getRequestingScheme().equals("basic")
 				|| getRequestingScheme().equals("digest")) {
 			usePathRecursion = true;
-			if (realm != null && realm.length() > 0)
-				try {
-					uri = DistinguishedNameParserImpl.resolveUriFragment(uri, realm);
-				} catch (URISyntaxException e) {
-					logger.warn("Could not URI-encode fragment for realm: "
-							+ realm);
-				}
+			try {
+				if (realm != null && realm.length() > 0)
+					uri = DistinguishedNameParserImpl.resolveUriFragment(uri,
+							realm);
+			} catch (URISyntaxException e) {
+				logger.warn("Could not URI-encode fragment for realm: " + realm);
+			}
 		}
 
 		UsernamePassword usernameAndPassword;
 		try {
-			usernameAndPassword = credManager.getUsernameAndPasswordForService(uri,
-					usePathRecursion, realm);
+			usernameAndPassword = credManager.getUsernameAndPasswordForService(
+					uri, usePathRecursion, realm);
 		} catch (CMException e) {
 			logger.warn("Could not get username and password for " + uri, e);
 			return null;
@@ -104,8 +103,8 @@ public class CredentialManagerAuthenticator extends Authenticator {
 			return null;
 		}
 		PasswordAuthentication pwAuth = new PasswordAuthentication(
-				usernameAndPassword.getUsername(), usernameAndPassword
-						.getPassword());
+				usernameAndPassword.getUsername(),
+				usernameAndPassword.getPassword());
 		usernameAndPassword.resetPassword();
 		return pwAuth;
 	}

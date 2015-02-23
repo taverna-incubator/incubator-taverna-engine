@@ -22,27 +22,54 @@ package net.sf.taverna.t2.security.credentialmanager.impl;
 
 import java.net.URI;
 import java.util.ArrayList;
+
 import net.sf.taverna.t2.security.credentialmanager.ParsedDistinguishedName;
+
 import org.apache.log4j.Logger;
 
 /**
- * Parses a Distinguished Name and stores the parts for retreival.
+ * Parses a Distinguished Name and stores the parts for retrieval.
+ * <p>
+ * From RFC 2253:
+ * <ul>
+ * <li><b>CN</b>: commonName
+ * <li><b>L</b>: localityName
+ * <li><b>ST</b>: stateOrProvinceName
+ * <li><b>O</b>: organizationName
+ * <li><b>OU</b>: organizationalUnitName
+ * <li><b>C</b>: countryName
+ * <li><b>STREET</b>: streetAddress <i>(ignored)</i>
+ * <li><b>DC</b>: domainComponent <i>(ignored)</i>
+ * <li><b>UID</b>: userid <i>(ignored)</i>
+ * </ul>
  * 
  * @author Alex Nenadic
  * @author Stian Soiland-Reyes
  * @author Christian Brenninkmeijer
  */
-public class ParsedDistinguishedNameImpl implements ParsedDistinguishedName{
+@SuppressWarnings("unused")
+public class ParsedDistinguishedNameImpl implements ParsedDistinguishedName {
+	private static final char SEPARATOR_CHARACTER = ',';
+	private static final char ESCAPE_CHARACTER = '\\';
+	private static final char QUOTE_CHARACTER = '\"';
+	private static final String KEY_VALUE_SEPARATOR = "=";
+
 	private static final Logger logger = Logger.getLogger(ParsedDistinguishedNameImpl.class);
 
-	private String emailAddress; // not from RFC 2253, yet some certificates
-									// contain this field
-	private String CN;
-	private String L;
-	private String ST;
-	private String C;
-	private String O;
-	private String OU;
+	/** not from RFC 2253, yet some certificates contain this field */
+	private String emailAddress = "none";
+	/** common name */
+	private String CN = "none";
+	/** locality */
+	private String L = "none";
+	/** state or province */
+	private String ST = "none";
+	/** country */
+	private String C = "none";
+	/** organisation */
+	private String O = "none";
+	/** organisation unit (department, faculty, etc.) */
+	private String OU = "none";
 
 	// /**
 	// * Gets the intended certificate uses, i.e. Netscape Certificate Type
@@ -97,168 +124,130 @@ public class ParsedDistinguishedNameImpl implements ParsedDistinguishedName{
 	// return str;
 	// }
 
-	// FROM RFC 2253:
-	// CN commonName
-	// L localityName
-	// ST stateOrProvinceName
-	// O organizationName
-	// OU organizationalUnitName
-	// C countryName
-	// STREET streetAddress
-	// DC domainComponent
-	// UID userid
-
-        /**
+	/**
 	 * Parses a DN string and fills in fields with DN parts. Heavily based on
 	 * uk.ac.omii.security.utils.DNParser class from omii-security-utils
 	 * library.
 	 * 
-	 * http://maven.omii.ac.uk/maven2/repository/omii/omii-security-utils/
+	 * @see http://maven.omii.ac.uk/maven2/repository/omii/omii-security-utils/
 	 */
 	public ParsedDistinguishedNameImpl(String DNstr) {
-		// ///////////////////////////////////////////////////////////////////////////////////////////////////
-		// Parse the DN String and put into variables. First, tokenise using a
-		// "," character as a delimiter
-		// UNLESS escaped with a "\" character. Put the tokens into an
-		// ArrayList. These should be name value pairs
-		// separated by "=". Tokenise these using a StringTokenizer class, test
-		// for the name, and if one of the
-		// recognised names, copy into the correct variable. The reason
-		// StringTokenizer is not used for the major
-		// token list is that the StringTokenizer class does not handle escaped
-		// delimiters so an escaped delimiter
-		// in the code would be treated as a valid one.
+		/*
+		 * Parse the DN String and put into variables. First, tokenise using a
+		 * "," character as a delimiter UNLESS escaped with a "\" character. Put
+		 * the tokens into an ArrayList. These should be name value pairs
+		 * separated by "=". Tokenise these using a StringTokenizer class, test
+		 * for the name, and if one of the recognised names, copy into the
+		 * correct variable. The reason StringTokenizer is not used for the
+		 * major token list is that the StringTokenizer class does not handle
+		 * escaped delimiters so an escaped delimiter in the code would be
+		 * treated as a valid one.
+		 */
 
-		int i = 0;
+		for (String currentToken : tokenize(DNstr)) {
+			// split on first equals only, as value can contain an equals char
+			String[] minorTokens = currentToken.trim().split(KEY_VALUE_SEPARATOR, 2);
 
-		char majorListDelimiter = ',';
-		char majorListEscapeChar = '\\';
+			/*
+			 * there had better be a key and a value only, else we have a key
+			 * with no value, so skip processing the key.
+			 */
+			if (minorTokens.length != 2)
+				continue;
+			switch (minorTokens[0].toUpperCase()) {
+			case "CN":
+			case "COMMONNAME":
+				CN = minorTokens[1];
+				break;
+			case "EMAIL":
+			case "EMAILADDRESS":
+				emailAddress = minorTokens[1];
+				break;
+			case "OU":
+			case "ORGANIZATIONALUNITNAME":
+				OU = minorTokens[1];
+				break;
+			case "O":
+			case "ORGANIZATIONNAME":
+				O = minorTokens[1];
+				break;
+			case "L":
+			case "LOCALITYNAME":
+				L = minorTokens[1];
+				break;
+			case "ST":
+			case "STATEORPROVINCENAME":
+				ST = minorTokens[1];
+				break;
+			case "C":
+			case "COUNTRYNAME":
+				C = minorTokens[1];
+				break;
+			}
+		}
+	}
 
-		// String minorListDelimiter = "=";
-
-		String DNchars = DNstr;
-
+	private ArrayList<String> tokenize(String DNstr) {
 		int startIndex = 0;
 		int endIndex = 0;
 		boolean ignoreThisChar = false;
-
 		boolean inQuotes = false;
 
-		ArrayList<String> majorTokenList = new ArrayList<String>();
+		ArrayList<String> majorTokenList = new ArrayList<>();
 
-		for (i = 0; i < DNchars.length(); i++) {
-			if (ignoreThisChar == true) {
+		for (int i = 0; i < DNstr.length(); i++) {
+			char ch = DNstr.charAt(i);
+			if (ignoreThisChar == true)
 				ignoreThisChar = false;
-			} else if ((inQuotes == false) && (DNchars.charAt(i) == '\"')) {
-				inQuotes = true;
-			} else if ((inQuotes == true) && (DNchars.charAt(i) == '\"')) {
-				inQuotes = false;
-			} else if (inQuotes == true) {
+			else if (ch == QUOTE_CHARACTER)
+				inQuotes = !inQuotes;
+			else if (inQuotes)
 				continue;
-			} else if (DNchars.charAt(i) == majorListEscapeChar) {
+			else if (ch == ESCAPE_CHARACTER)
 				ignoreThisChar = true;
-			} else if ((DNchars.charAt(i) == majorListDelimiter)
-					&& (ignoreThisChar == false)) {
+			else if (ch == SEPARATOR_CHARACTER && !ignoreThisChar) {
 				endIndex = i;
-				majorTokenList.add(DNchars.substring(startIndex, endIndex));
+				majorTokenList.add(DNstr.substring(startIndex, endIndex));
 				startIndex = i + 1;
 			}
 		}
 
 		// Add last token - after the last delimiter
-		endIndex = DNchars.length();
-		majorTokenList.add(DNchars.substring(startIndex, endIndex));
-
-		for (String currentToken : majorTokenList) {
-			currentToken = currentToken.trim();
-
-			// split on first equals only, as value can contain an equals char
-			String[] minorTokenList = currentToken.split("=", 2);
-
-			if (minorTokenList.length == 2) {
-				// there had better be a key and a value only
-				String DNTokenName = minorTokenList[0].toUpperCase();
-				String DNTokenValue = minorTokenList[1];
-
-				if (DNTokenName.equals("CN")
-						|| DNTokenName.equals("COMMONNAME")) {
-					CN = DNTokenValue;
-				} else if (DNTokenName.equals("EMAIL")
-						|| DNTokenName.equals("EMAILADDRESS")) {
-					emailAddress = DNTokenValue;
-				} else if (DNTokenName.equals("OU")
-						|| DNTokenName.equals("ORGANIZATIONALUNITNAME")) {
-					OU = DNTokenValue;
-				} else if (DNTokenName.equals("O")
-						|| DNTokenName.equals("ORGANIZATIONNAME")) {
-					O = DNTokenValue;
-				} else if (DNTokenName.equals("L")
-						|| DNTokenName.equals("LOCALITYNAME")) {
-					L = DNTokenValue;
-				} else if (DNTokenName.equals("ST")
-						|| DNTokenName.equals("STATEORPROVINCENAME")) {
-					ST = DNTokenValue;
-				} else if (DNTokenName.equals("C")
-						|| DNTokenName.equals("COUNTRYNAME")) {
-					C = DNTokenValue;
-				}
-			}
-			// else we have a key with no value, so skip processing the key
-		}
-
-		if (CN == null)
-			CN = "none";
-
-		if (emailAddress == null)
-			emailAddress = "none";
-
-		if (OU == null)
-			OU = "none";
-
-		if (O == null)
-			O = "none";
-
-		if (L == null)
-			L = "none";
-
-		if (ST == null)
-			ST = "none";
-
-		if (C == null)
-			C = "none";
+		majorTokenList.add(DNstr.substring(startIndex, DNstr.length()));
+		return majorTokenList;
 	}
 
-        @Override
+	@Override
 	public String getCN() {
 		return CN;
 	}
 
-        @Override
+	@Override
 	public String getEmailAddress() {
 		return emailAddress;
 	}
 
-        @Override
+	@Override
 	public String getOU() {
 		return OU;
 	}
 
-        @Override
+	@Override
 	public String getO() {
 		return O;
 	}
 
-        @Override
+	@Override
 	public String getL() {
 		return L;
 	}
 
-        @Override
+	@Override
 	public String getST() {
 		return ST;
 	}
 
-        @Override
+	@Override
 	public String getC() {
 		return C;
 	}

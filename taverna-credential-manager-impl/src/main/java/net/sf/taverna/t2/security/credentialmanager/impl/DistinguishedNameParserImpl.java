@@ -46,17 +46,18 @@ import uk.org.taverna.configuration.app.ApplicationConfiguration;
  * @author Stian Soiland-Reyes
  * @author Christian Brenninkmeijer
  */
-public class DistinguishedNameParserImpl implements DistinguishedNameParser{
-	private static Logger logger = Logger.getLogger(DistinguishedNameParserImpl.class);
+public class DistinguishedNameParserImpl implements DistinguishedNameParser {
+	private static Logger logger = Logger
+			.getLogger(DistinguishedNameParserImpl.class);
 
-        public DistinguishedNameParserImpl(){
-        }
-        
+	public DistinguishedNameParserImpl() {
+	}
+
 	/**
 	 * Get the configuration directory where the security stuff will be/is saved
 	 * to.
 	 */
-	public static File getTheCredentialManagerDefaultDirectory(
+	static File getTheCredentialManagerDefaultDirectory(
 			ApplicationConfiguration applicationConfiguration) {
 		File home = applicationConfiguration.getApplicationHomeDir();
 		File secConfigDirectory = new File(home, "security");
@@ -65,13 +66,13 @@ public class DistinguishedNameParserImpl implements DistinguishedNameParser{
 		return secConfigDirectory;
 	}
 
-        @Override
+	@Override
 	public final File getCredentialManagerDefaultDirectory(
 			ApplicationConfiguration applicationConfiguration) {
 		return getTheCredentialManagerDefaultDirectory(applicationConfiguration);
 	}
 
-        static URI resolveUriFragment(URI uri, String realm)
+	static URI resolveUriFragment(URI uri, String realm)
 			throws URISyntaxException {
 		/*
 		 * Little hack to encode the fragment correctly - why does not
@@ -82,21 +83,21 @@ public class DistinguishedNameParserImpl implements DistinguishedNameParser{
 		return uri.resolve(fragment);
 	}
 
-        @Override
+	@Override
 	public final URI setFragmentForURI(URI uri, String fragment)
 			throws URISyntaxException {
 		return new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(),
 				uri.getPort(), uri.getPath(), uri.getQuery(), fragment);
 	}
 
-        @Override
+	@Override
 	public final URI setUserInfoForURI(URI uri, String userinfo)
 			throws URISyntaxException {
 		return new URI(uri.getScheme(), userinfo, uri.getHost(), uri.getPort(),
 				uri.getPath(), uri.getQuery(), uri.getFragment());
 	}
 
-        @Override
+	@Override
 	public final X509Certificate convertCertificate(Certificate cert)
 			throws CMException {
 		try {
@@ -119,6 +120,7 @@ public class DistinguishedNameParserImpl implements DistinguishedNameParser{
 	 * Get the message digest of the given byte array as a string of hexadecimal
 	 * characters in the form XX:XX:XX... using the given digest algorithm.
 	 */
+	@Override
 	public String getMessageDigestAsFormattedString(byte[] messageBytes,
 			String digestAlgorithm) {
 
@@ -138,13 +140,17 @@ public class DistinguishedNameParserImpl implements DistinguishedNameParser{
 		String hexValueString = number.toString(16).toUpperCase();
 
 		StringBuffer strBuff = new StringBuffer(hexValueString);
-		// If the hex number contains odd number of characters -
-		// insert a padding "0" at the front of the string
+		/*
+		 * If the hex number contains odd number of characters - insert a
+		 * padding "0" at the front of the string
+		 */
 		if ((strBuff.length() % 2) != 0)
 			strBuff.insert(0, '0');
 
-		// Insert colons after every two hex characters - start form the end of
-		// the hex string
+		/*
+		 * Insert colons after every two hex characters - start form the end of
+		 * the hex string
+		 */
 		if (strBuff.length() > 2)
 			for (int i = 2; i < strBuff.length(); i += 3)
 				strBuff.insert(i, ':');
@@ -152,26 +158,15 @@ public class DistinguishedNameParserImpl implements DistinguishedNameParser{
 		return strBuff.toString();
 	}
 
-
-	private String emailAddress; // not from RFC 2253, yet some certificates
-									// contain this field
-
-	private String CN;
-	private String L;
-	private String ST;
-	private String C;
-	private String O;
-	private String OU;
-
 	/**
 	 * Parses a DN string and fills in fields with DN parts. Heavily based on
 	 * uk.ac.omii.security.utils.DNParser class from omii-security-utils
 	 * library.
 	 * 
-	 * http://maven.omii.ac.uk/maven2/repository/omii/omii-security-utils/
+	 * @see http://maven.omii.ac.uk/maven2/repository/omii/omii-security-utils/
 	 */
+	@Override
 	public ParsedDistinguishedNameImpl parseDN(String DNstr) {
-            return new ParsedDistinguishedNameImpl(DNstr);
-        }
-
+		return new ParsedDistinguishedNameImpl(DNstr);
+	}
 }

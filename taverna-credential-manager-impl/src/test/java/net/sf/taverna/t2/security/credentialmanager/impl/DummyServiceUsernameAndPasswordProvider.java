@@ -25,8 +25,9 @@ import java.net.URI;
 import net.sf.taverna.t2.security.credentialmanager.ServiceUsernameAndPasswordProvider;
 import net.sf.taverna.t2.security.credentialmanager.UsernamePassword;
 
-public class DummyServiceUsernameAndPasswordProvider implements ServiceUsernameAndPasswordProvider{
-
+@SuppressWarnings("unused")
+public class DummyServiceUsernameAndPasswordProvider implements
+		ServiceUsernameAndPasswordProvider {
 	private UsernamePassword usernamePassword;
 	private URI serviceURI;
 	private String requestingMessage;
@@ -42,9 +43,7 @@ public class DummyServiceUsernameAndPasswordProvider implements ServiceUsernameA
 	@Override
 	public void setServiceUsernameAndPassword(URI serviceURI,
 			UsernamePassword usernamePassword) {
-
-		//this.serviceURI = serviceURI;
+		// this.serviceURI = serviceURI;
 		this.usernamePassword = usernamePassword;
 	}
-
 }

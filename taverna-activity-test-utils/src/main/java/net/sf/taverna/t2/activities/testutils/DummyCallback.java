@@ -39,35 +39,33 @@ import org.apache.log4j.Logger;
  * @author Stuart Owen
  * @author David Withers
  * @author Stian Soiland-Reyes
- *
  */
 public class DummyCallback implements AsynchronousActivityCallback {
-	
-	private static Logger logger = Logger
-	.getLogger(DummyCallback.class);
+	private static Logger logger = Logger.getLogger(DummyCallback.class);
 
 	public ReferenceService referenceService;
 	public InvocationContext invocationContext;
 	public Map<String, T2Reference> data;
 	public Thread thread;
-
 	public boolean failed = false;
-	
-	public List<RuntimeException> failures = new ArrayList<RuntimeException>();
+	public List<RuntimeException> failures = new ArrayList<>();
 	
 	public DummyCallback(ReferenceService referenceService) {
 		this.referenceService = referenceService;
 		this.invocationContext = new InvocationContextImpl(referenceService, null);
 	}
 
+	@Override
 	public void fail(String message, Throwable t) {
 		fail(message, t, null);
 	}
 
+	@Override
 	public void fail(String message) {
 		fail(message, null, null);
 	}
 
+	@Override
 	public void fail(String message, Throwable t, DispatchErrorType arg2) {
 		failed = true;
 		failures.add(new RuntimeException(arg2+message, t));
@@ -75,32 +73,32 @@ public class DummyCallback implements AsynchronousActivityCallback {
 	}
 	
 	/*public SecurityAgentManager getLocalSecurityManager() {
-		// TODO Auto-generated method stub
 		return null;
 	}*/
 
+	@Override
 	public void receiveCompletion(int[] completionIndex) {
-		// TODO Auto-generated method stub
-
 	}
 
+	@Override
 	public void receiveResult(Map<String, T2Reference> data,
 			int[] index) {
 		this.data = data;
 	}
 
+	@Override
 	public void requestRun(Runnable runMe) {
 		thread = new Thread(runMe);
 		thread.start();
 	}
 
+	@Override
 	public InvocationContext getContext() {
 		return invocationContext;
 	}
 
+	@Override
 	public String getParentProcessIdentifier() {
-		// TODO Auto-generated method stub
 		return "";
 	}
-
 }
